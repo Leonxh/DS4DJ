@@ -4,7 +4,7 @@ import configparser # for reading config file
 import os.path      # for path joining
 import cmdargs      # cmd line args
 
-from youtube_utils import get_id_by_name, download_video, download_cover
+from youtube_utils import get_id_by_name, download_video, download_cover, resolve_playlist, full_url_to_id
 from conversion_utils import convert_to_m4a, clean_temp_folder, set_metatags
 from pathlib import Path
 
@@ -61,12 +61,18 @@ if __name__ == "__main__":
         config["LOCATIONS"]["M4aSaveFolder"] = rf"{os.path.join(Path.home(), 'Downloads')}"
 
     songs = []
-
-    # Read input file line by line
-    with open(config["INPUT"]["ScrapeFile"].strip(), 'r') as scrape_file:
-        for song_line in scrape_file:
-            song = song_line.strip()
-            songs.append(song)
+   # This is where we decide if we download a playlist or nah
+    if cmdargs.find_arg("-playlist"): # we download a whole playlist
+        #get user input
+        full_urls = resolve_playlist(input("YouTube Playlist url: "))
+        for full_url in full_urls:
+            songs.append(full_url_to_id(full_url))
+    else: # Download from the file
+        # Read input file line by line
+        with open(config["INPUT"]["ScrapeFile"].strip(), 'r') as scrape_file:
+            for song_line in scrape_file:
+                song = song_line.strip()
+                songs.append(song)
 
     # Exit condition if no songs were found
     if len(songs) < 1: exit(0)

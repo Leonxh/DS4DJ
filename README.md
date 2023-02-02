@@ -12,7 +12,8 @@ Adds a bunch of nice-to-have features and fixes some bugs
 Command line arguments are as following: 
 + -k : keep the temporary files (mp4 and jpg)
 + -nocover : Does not add a cover image to the converted m4a
-
++ -playlist : Tells the program to start in playlist mode
+    + you will need to provide the full playlist mode during runtime
 ## Setup (nothing changed in dx ver.)
 * Rename / Copy the ``config.template`` file to a ``config.txt`` file
     * Input your temporary & output folder, and your input file

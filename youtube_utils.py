@@ -1,5 +1,5 @@
 from youtubesearchpython.__future__ import VideosSearch
-from pytube import YouTube
+from pytube import YouTube, Playlist
 from pathlib import Path
 import requests
 import os
@@ -34,10 +34,16 @@ def download_video(video_id: str, save_location: str) -> list:
     :param save_location: the folder in which to save the file
     :return: [filename, video author, video name, thumbnail url]
     """
-    url = f"https://www.youtube.com/watch?v={video_id}"
-    video_object = YouTube(url=url)
+    #url = f"https://www.youtube.com/watch?v={video_id}"
+    video_object = YouTube.from_id(video_id)#YouTube(url=url)
     print("{},{}".format(video_object.author, video_object.title))
 
     video_object.streams.get_audio_only().download(save_location)
     file_name = Path(video_object.streams.get_audio_only().default_filename)
     return file_name, video_object.author, video_object.title, video_object.thumbnail_url
+
+def resolve_playlist(playlist_url : str) -> list:
+    return Playlist(playlist_url).video_urls
+
+def full_url_to_id(url: str) -> str:
+    return url.replace("https://www.youtube.com/watch?v=",'')
