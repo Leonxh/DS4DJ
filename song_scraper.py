@@ -1,22 +1,24 @@
 import configparser
 from youtube_utils import resolve_playlist, full_url_to_id
+from pathlib import Path
 
 
 def scrape_playlist():
-    songs = []
+    song_dict = {}
     full_urls = resolve_playlist(input("YouTube Playlist url: "))
     for full_url in full_urls:
-        songs.append(full_url_to_id(full_url))
-    return songs
+        song_dict.update({full_url_to_id(full_url): "Default"})
+    return song_dict
 
 
 def scrape_file(config: configparser.ConfigParser):
-    songs = []
-    with open(config["INPUT"]["ScrapeFile"].strip(), 'r') as s_file:
-        for song_line in s_file:
-            song = song_line.strip()
-            songs.append(song)
-    return songs
+    file_path = Path(config["INPUT"]["ScrapeFile"].strip())
+    if not file_path.is_file():
+        print(f"Was not able to find file '{file_path.name}' for scraping...")
+        exit(1)
+
+    song_dict = scrape_section_file(file_path)
+    return song_dict
 
 
 def scrape_songs(config: configparser.ConfigParser, is_playlist: bool = False):
@@ -26,3 +28,23 @@ def scrape_songs(config: configparser.ConfigParser, is_playlist: bool = False):
     else:  # Download from the file
         songs = scrape_file(config)
     return songs
+
+
+def scrape_section_file(file):
+    song_dict = {}
+
+    with open(file, 'r') as file_to_validate:
+        line_num = 0
+        current_section = "Default"
+        for line in file_to_validate:
+            line_num += 1
+            if line == "":
+                print(f"Found empty line in line {line_num}")
+                return None
+
+            if line.startswith("\\\\[SECTION] "):
+                current_section = " ".join(line.split(" ")[1:]).strip()
+            else:
+                song_dict.update({line.strip(): current_section})
+
+    return song_dict

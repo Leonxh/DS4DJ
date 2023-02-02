@@ -10,13 +10,13 @@ from conversion_utils import convert_to_m4a, clean_temp_folder, set_meta_tags
 from pathlib import Path
 
 
-async def run(song_list: list):
+async def run(songs: dict):
     """
     Iterates over a list of song names, fetches them from youtube and converts them into .m4a format
-    :param song_list: the list of songs to be fetched
+    :param songs: the list of songs to be fetched
     :return: None
     """
-    for song_name in song_list:
+    for song_name, section in songs.items():
         print(f"Working on {song_name}...")
 
         # Get video id
@@ -28,9 +28,21 @@ async def run(song_list: list):
 
         # Convert .mp4 video to .m4a SoundFile
         mp4_path = os.path.join(config["LOCATIONS"]["Mp4TempFolder"], Path(mp4_name))
-        m4a_path = os.path.join(config["LOCATIONS"]["M4aSaveFolder"], Path(mp4_name).with_suffix('.m4a'))
+
+        # Default section is only the case when there were no sections given or songs posted before a section first
+        # began
+        if section == "Default":
+            m4a_path = os.path.join(config["LOCATIONS"]["M4aSaveFolder"], Path(mp4_name).with_suffix('.m4a'))
+        else:
+            # Create a new folder for the Section / category if it not yet exists
+            section_dir = os.path.join(config["LOCATIONS"]["M4aSaveFolder"], section)
+            if not os.path.exists(section_dir):
+                os.makedirs(section_dir)
+            m4a_path = os.path.join(section_dir, Path(mp4_name).with_suffix('.m4a'))
+
+        print(f"MP4: {mp4_path}")
+        print(f"M4A: {m4a_path}")
         convert_to_m4a(mp4_path, m4a_path)
-        # Set meta-tags
 
         # Download cover (-nocover will stop this)
         if not cmdargs.find_arg("-nocover"):
@@ -62,14 +74,15 @@ if __name__ == "__main__":
     if "LOCATIONS" not in config or "M4aSaveFolder" not in config["LOCATIONS"]:
         config["LOCATIONS"]["M4aSaveFolder"] = rf"{os.path.join(Path.home(), 'Downloads')}"
 
-    songs = scrape_songs(config, cmdargs.find_arg("-playlist"))
+    # Scrape a song dictionary - contains their category from the scrape file or "Default" if none were found
+    song_dict = scrape_songs(config, cmdargs.find_arg("-playlist"))
 
     # Exit condition if no songs were found
-    if len(songs) < 1: exit(0)
+    if len(song_dict) < 1: exit(0)
 
     # Scrape all Videos
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(run(songs))
+    loop.run_until_complete(run(song_dict))
     loop.close()
 
     # Clean temp folder (argument -k missing)
