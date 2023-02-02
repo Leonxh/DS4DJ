@@ -1,6 +1,7 @@
 import os
 import music_tag
 
+
 def convert_to_m4a(location_mp4: str, location_m4a: str):
     """
     Create a .m4a sound file out of a .mp4 video file
@@ -9,6 +10,7 @@ def convert_to_m4a(location_mp4: str, location_m4a: str):
     :return: None
     """
     os.system(f'ffmpeg -i "{location_mp4}" -vn -c:a copy "{location_m4a}"')
+
 
 def clean_temp_folder(location_mp4_tempdir: str) -> None:
     """
@@ -23,16 +25,15 @@ def clean_temp_folder(location_mp4_tempdir: str) -> None:
             os.remove(os.path.join(subdir, file))
     print("Done removing temp files. (pass -k to keep)")
 
-def set_metatags(location_m4a: str, title: str, author: str, jpg_path: str) -> None:
+
+def set_meta_tags(location_m4a: str, title: str, author: str, jpg_path: str) -> None:
     file = music_tag.load_file(location_m4a)
     file['title'] = title
     file['artist'] = author
 
-    # Set the cover image if provided (supressed by -nocover)
+    # Set the cover image if provided (suppressed by -nocover)
     if os.path.isfile(jpg_path) or jpg_path != "NONE":
         with open(jpg_path, 'rb') as img_in:
             file['artwork'] = img_in.read()
 
     file.save()
-
-
