@@ -23,8 +23,16 @@ def clean_temp_folder(location_mp4_tempdir: str) -> None:
             os.remove(os.path.join(subdir, file))
     print("Done removing temp files. (pass -k to keep)")
 
-def set_metatags(location_m4a: str, title: str, author: str) -> None:
+def set_metatags(location_m4a: str, title: str, author: str, jpg_path: str) -> None:
     file = music_tag.load_file(location_m4a)
     file['title'] = title
     file['artist'] = author
+
+    # Set the cover image if provided (supressed by -nocover)
+    if os.path.isfile(jpg_path) or jpg_path != "NONE":
+        with open(jpg_path, 'rb') as img_in:
+            file['artwork'] = img_in.read()
+
     file.save()
+
+

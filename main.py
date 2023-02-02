@@ -4,7 +4,7 @@ import configparser # for reading config file
 import os.path      # for path joining
 import cmdargs      # cmd line args
 
-from youtube_utils import get_id_by_name, download_video
+from youtube_utils import get_id_by_name, download_video, download_cover
 from conversion_utils import convert_to_m4a, clean_temp_folder, set_metatags
 from pathlib import Path
 
@@ -22,17 +22,30 @@ async def run(song_list: list):
         video_id = await get_id_by_name(song_name)
 
         # Download Video to wanted location
-        mp4_name, video_author, video_title = download_video(video_id, config["LOCATIONS"]["Mp4TempFolder"])
+        mp4_name, video_author, video_title, video_coverurl = download_video(video_id, config["LOCATIONS"]["Mp4TempFolder"])
 
         # Convert .mp4 video to .m4a SoundFile
         mp4_path = os.path.join(config["LOCATIONS"]["Mp4TempFolder"], Path(mp4_name))
         m4a_path = os.path.join(config["LOCATIONS"]["M4aSaveFolder"], Path(mp4_name).with_suffix('.m4a'))
         convert_to_m4a(mp4_path, m4a_path)
         # set metatags
-        set_metatags(m4a_path,video_title,video_author)
+
+        # download cover (-nocover will stop this)
+        if not cmdargs.find_arg("-nocover"):
+            jpg_path = download_cover(video_coverurl, video_id, config["LOCATIONS"]["Mp4TempFolder"])
+        else:
+            jpg_path = "NONE"
+        
+        #set the metatags
+        set_metatags(m4a_path,video_title,video_author, jpg_path)
 
 
 if __name__ == "__main__":
+
+    # Valid command line arguments: 
+    # -k       : keep the temporary files (mp4 and jpg)
+    # -nocover : Does not add a cover image to the converted m4a
+    
     # Read configuration file config.ini
     if os.path.isfile("config.ini"): # check if config file exists
         config = configparser.ConfigParser()
