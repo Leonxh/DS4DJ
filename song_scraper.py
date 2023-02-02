@@ -3,11 +3,11 @@ from youtube_utils import resolve_playlist, full_url_to_id
 from pathlib import Path
 
 
-def scrape_playlist():
+def scrape_playlist(playlist_url: str, genre: str):
     song_dict = {}
-    full_urls = resolve_playlist(input("YouTube Playlist url: "))
+    full_urls = resolve_playlist(playlist_url)
     for full_url in full_urls:
-        song_dict.update({full_url_to_id(full_url): "Default"})
+        song_dict.update({full_url_to_id(full_url): genre})
     return song_dict
 
 
@@ -19,15 +19,6 @@ def scrape_file(config: configparser.ConfigParser):
 
     song_dict = scrape_section_file(file_path)
     return song_dict
-
-
-def scrape_songs(config: configparser.ConfigParser, is_playlist: bool = False):
-    # This is where we decide if we download a playlist or nah
-    if is_playlist:  # we download a whole playlist
-        songs = scrape_playlist()
-    else:  # Download from the file
-        songs = scrape_file(config)
-    return songs
 
 
 def scrape_section_file(file):

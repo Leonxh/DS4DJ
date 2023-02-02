@@ -2,17 +2,18 @@ import os
 import asyncio
 import configparser  # for reading config file
 import os.path  # for path joining
-import cmdargs  # cmd line args
+import argparse
 
-from song_scraper import scrape_songs
+from song_scraper import scrape_playlist, scrape_file
 from youtube_utils import get_id_by_name, download_video, download_cover
 from conversion_utils import convert_to_m4a, clean_temp_folder, set_meta_tags
 from pathlib import Path
 
 
-async def run(songs: dict):
+async def run(arguments: argparse.Namespace, songs: dict):
     """
     Iterates over a list of song names, fetches them from youtube and converts them into .m4a format
+    :param arguments: Commandline arguments to check how the user wants the script to act
     :param songs: the list of songs to be fetched
     :return: None
     """
@@ -45,10 +46,10 @@ async def run(songs: dict):
         convert_to_m4a(mp4_path, m4a_path)
 
         # Download cover (-nocover will stop this)
-        if not cmdargs.find_arg("-nocover"):
-            jpg_path = download_cover(video_cover_url, video_id, config["LOCATIONS"]["Mp4TempFolder"])
-        else:
+        if arguments.no_cover_in_metadata:
             jpg_path = "NONE"
+        else:
+            jpg_path = download_cover(video_cover_url, video_id, config["LOCATIONS"]["Mp4TempFolder"])
 
         # Set the meta-tags
         set_meta_tags(m4a_path, video_title, video_author, jpg_path)
@@ -56,9 +57,33 @@ async def run(songs: dict):
 
 if __name__ == "__main__":
 
-    # Valid command line arguments: 
-    # -k       : keep the temporary files (mp4 and jpg)
-    # -nocover : Does not add a cover image to the converted m4a
+    parser = argparse.ArgumentParser(
+        prog="DS4DJ",
+        description="An automated toolchain for fetching a list of songs from YouTube and converting them to the "
+                    "desired format (in this case .m4a.) ",
+        epilog="This utility was made for private use"
+    )
+    parser.add_argument("-k", "--keep_temporary_content",
+                        action=argparse.BooleanOptionalAction,
+                        default=False,
+                        help="If set, keeps the temporary files in the temporary folder.")
+    parser.add_argument("-c", "--no_cover_in_metadata",
+                        action=argparse.BooleanOptionalAction,
+                        default=False,
+                        help="If set, does not add a cover image to the sound-files.")
+    parser.add_argument("-p", "--playlist_url",
+                        action="store",
+                        help="Allows you to parse an url to a YouTube playlist to be used as the input")
+    parser.add_argument("-g", "--genre_name_playlist",
+                        action="store",
+                        default="Default",
+                        help="Requires a playlist url to be specified. Allows you to automatically sort all files "
+                             "into the given directory name")
+
+    args = parser.parse_args()
+
+    if args.genre_name_playlist != "Default" and args.playlist_url is None:
+        parser.error("--genre_name_playlist requires --playlist_url to be set.")
 
     # Read configuration file config.ini
     if os.path.isfile("config.ini"):  # check if config file exists
@@ -75,18 +100,21 @@ if __name__ == "__main__":
         config["LOCATIONS"]["M4aSaveFolder"] = rf"{os.path.join(Path.home(), 'Downloads')}"
 
     # Scrape a song dictionary - contains their category from the scrape file or "Default" if none were found
-    song_dict = scrape_songs(config, cmdargs.find_arg("-playlist"))
+    if args.playlist_url is None:
+        song_dict = scrape_file(config)
+    else:
+        song_dict = scrape_playlist(args.playlist_url, args.genre_name_playlist)
 
     # Exit condition if no songs were found
     if len(song_dict) < 1: exit(0)
 
     # Scrape all Videos
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(run(song_dict))
+    loop.run_until_complete(run(args, song_dict))
     loop.close()
 
-    # Clean temp folder (argument -k missing)
-    if not cmdargs.find_arg("-k"):
+    # Clean temp folder if flag -k is not set
+    if not args.keep_temporary_content:
         clean_temp_folder(config["LOCATIONS"]["Mp4TempFolder"])
     else:
         print("Keeping temporary mp4 files.")
