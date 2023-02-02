@@ -1,9 +1,11 @@
 import os
-import asyncio
-import configparser
+import asyncio      
+import configparser # for reading config file
+import os.path      # for path joining
+import cmdargs      # cmd line args
 
 from youtube_utils import get_id_by_name, download_video
-from conversion_utils import convert_to_m4a
+from conversion_utils import convert_to_m4a, clean_temp_folder
 from pathlib import Path
 
 
@@ -30,8 +32,12 @@ async def run(song_list: list):
 
 if __name__ == "__main__":
     # Read configuration file config.ini
-    config = configparser.ConfigParser()
-    config.read("config.ini")
+    if os.path.isfile("config.ini"): # check if config file exists
+        config = configparser.ConfigParser()
+        config.read("config.ini")
+    else:   # File could not be found
+        print("Could not find config.ini file, using default fallbacks (your 'Downloads' folder)")
+        config = "DEFAULT" 
 
     # Set default save/temp locations to the download directory if not found in the config
     if "LOCATIONS" not in config or "Mp4TempFolder" not in config["LOCATIONS"]:
@@ -54,3 +60,11 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run(songs))
     loop.close()
+
+    # Clean temp folder (argument -k missing)
+    if not cmdargs.find_arg("-k"):
+        clean_temp_folder(config["LOCATIONS"]["Mp4TempFolder"])
+    else:
+        print("Keeping temporary mp4 files.")
+
+    print("Done. You can now close the window.")

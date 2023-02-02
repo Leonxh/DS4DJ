@@ -1,6 +1,0 @@
-[LOCATIONS]
-Mp4TempFolder = ""
-M4aSaveFolder = ""
-
-[INPUT]
-ScrapeFile = "music.txt"
