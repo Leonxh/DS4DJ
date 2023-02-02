@@ -40,7 +40,7 @@ def scrape_section_file(file):
             line_num += 1
             if line == "":
                 print(f"Found empty line in line {line_num}")
-                return None
+                continue
 
             if line.startswith("\\\\[SECTION] "):
                 current_section = " ".join(line.split(" ")[1:]).strip()
