@@ -1,0 +1,6 @@
+[LOCATIONS]
+Mp4TempFolder = temp
+M4aSaveFolder = output
+
+[INPUT]
+ScrapeFile = music.txt

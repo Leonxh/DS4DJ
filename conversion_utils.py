@@ -21,6 +21,9 @@ def clean_temp_folder(location_mp4_tempdir: str) -> None:
     print("Removing temporary mp4 files (pass -k to keep)")
     for subdir, dirs, files in os.walk(location_mp4_tempdir):
         for file in files:
+            print(file.title())
+            if file.title() == ".Gitkeep":
+                continue
             print("Removing " + os.path.join(subdir, file))
             os.remove(os.path.join(subdir, file))
     print("Done removing temp files. (pass -k to keep)")
