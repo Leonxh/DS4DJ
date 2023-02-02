@@ -14,15 +14,17 @@ async def get_id_by_name(search_string: str):
     return videos_result.get("result")[0].get("id")
 
 
-def download_video(video_id: str, save_location: str):
+def download_video(video_id: str, save_location: str) -> list:
     """
     Downloads a youtube video as audio only, given a video id
     :param video_id: the youtube video id to use when downloading
     :param save_location: the folder in which to save the file
-    :return: the final filepath of the file
+    :return: [filename, video author, video name]
     """
     url = f"https://www.youtube.com/watch?v={video_id}"
     video_object = YouTube(url=url)
+    print("{},{}".format(video_object.author, video_object.title))
+
     video_object.streams.get_audio_only().download(save_location)
     file_name = Path(video_object.streams.get_audio_only().default_filename)
-    return file_name
+    return file_name, video_object.author, video_object.title

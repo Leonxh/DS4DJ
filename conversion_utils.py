@@ -1,5 +1,5 @@
 import os
-
+import music_tag
 
 def convert_to_m4a(location_mp4: str, location_m4a: str):
     """
@@ -22,3 +22,9 @@ def clean_temp_folder(location_mp4_tempdir: str) -> None:
             print("Removing " + os.path.join(subdir, file))
             os.remove(os.path.join(subdir, file))
     print("Done removing temp files. (pass -k to keep)")
+
+def set_metatags(location_m4a: str, title: str, author: str) -> None:
+    file = music_tag.load_file(location_m4a)
+    file['title'] = title
+    file['artist'] = author
+    file.save()
