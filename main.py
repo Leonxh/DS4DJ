@@ -1,7 +1,7 @@
 import os
 import asyncio
-import configparser  # for reading config file
-import os.path  # for path joining
+import configparser
+import os.path
 import argparse
 
 from song_scraper import scrape_playlist, scrape_file

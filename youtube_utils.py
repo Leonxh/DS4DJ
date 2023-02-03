@@ -1,4 +1,7 @@
 from youtubesearchpython.__future__ import VideosSearch
+
+from pytube.helpers import DeferredGeneratorList
+
 from pytube import YouTube, Playlist
 from pathlib import Path
 import requests
@@ -29,23 +32,22 @@ def download_cover(cover_url: str, video_id: str, img_tempdir: str) -> str:
     return img_tempdir + os.sep + video_id + ".jpg"
 
 
-def download_video(video_id: str, save_location: str) -> list:
+def download_video(video_id: str, save_location: str) -> tuple[Path, str, str, str]:
     """
     Downloads a youtube video as audio only, given a video id
     :param video_id: the youtube video id to use when downloading
     :param save_location: the folder in which to save the file
     :return: [filename, video author, video name, thumbnail url]
     """
-    # url = f"https://www.youtube.com/watch?v={video_id}"
-    video_object = YouTube.from_id(video_id)  # YouTube(url=url)
-    print("{},{}".format(video_object.author, video_object.title))
+    video_object = YouTube.from_id(video_id)
+    print(f"{video_object.author} {video_object.title}")
 
     video_object.streams.get_audio_only().download(save_location)
     file_name = Path(video_object.streams.get_audio_only().default_filename)
     return file_name, video_object.author, video_object.title, video_object.thumbnail_url
 
 
-def resolve_playlist(playlist_url: str) -> list:
+def resolve_playlist(playlist_url: str) -> DeferredGeneratorList:
     return Playlist(playlist_url).video_urls
 
 
