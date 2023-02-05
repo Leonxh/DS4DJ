@@ -21,7 +21,10 @@ async def run(arguments: argparse.Namespace, songs: dict):
         print(f"Working on {song_name}...")
 
         # Get video id
-        video_id = await get_id_by_name(song_name)
+        if arguments.playlist_url is not None:
+            video_id = song_name
+        else:
+            video_id = await get_id_by_name(song_name)
 
         # Download Video to wanted location
         mp4_name, video_author, video_title, video_cover_url = download_video(video_id,
