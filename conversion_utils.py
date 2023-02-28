@@ -14,6 +14,11 @@ def convert_to_m4a(location_mp4: str, location_m4a: str):
     """
     os.system(f'ffmpeg -i "{location_mp4}" -vn -c:a copy "{location_m4a}"')
 
+def convert_to_mp3(location_mp4: str, location_mp3):
+    print("Converting to mp3...")
+    cmd = 'ffmpeg -i "{}" -vn "{}"'.format(location_mp4, location_mp3)
+    os.system(cmd)
+
 
 def clean_temp_folder(location_mp4_tempdir: str) -> None:
     """

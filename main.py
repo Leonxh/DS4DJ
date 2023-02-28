@@ -6,7 +6,7 @@ import argparse
 
 from song_scraper import scrape_playlist, scrape_file
 from youtube_utils import get_id_by_name, download_video, download_cover
-from conversion_utils import convert_to_m4a, clean_temp_folder, set_meta_tags
+from conversion_utils import convert_to_m4a, clean_temp_folder, set_meta_tags, convert_to_mp3
 from pathlib import Path
 
 
@@ -30,20 +30,38 @@ async def run(arguments: argparse.Namespace, songs: dict):
         # Convert .mp4 video to .m4a SoundFile
         mp4_path = os.path.join(config["LOCATIONS"]["Mp4TempFolder"], Path(mp4_name))
 
-        # Default section is only the case when there were no sections given or songs posted before a section first
-        # began
-        if section == "Default":
-            m4a_path = os.path.join(config["LOCATIONS"]["M4aSaveFolder"], Path(mp4_name).with_suffix('.m4a'))
-        else:
-            # Create a new folder for the Section / category if it not yet exists
-            section_dir = os.path.join(config["LOCATIONS"]["M4aSaveFolder"], section)
-            if not os.path.exists(section_dir):
-                os.makedirs(section_dir)
-            m4a_path = os.path.join(section_dir, Path(mp4_name).with_suffix('.m4a'))
+        output_file_path = ""
+        print("Checking conversion format...")
+        if arguments.convertmp3:
+            # Default section is only the case when there were no sections given or songs posted before a section first
+            # began
+            if section == "Default":
+                output_file_path = os.path.join(config["LOCATIONS"]["M4aSaveFolder"], Path(mp4_name).with_suffix('.mp3'))
+            else:
+                # Create a new folder for the Section / category if it not yet exists
+                section_dir = os.path.join(config["LOCATIONS"]["M4aSaveFolder"], section)
+                if not os.path.exists(section_dir):
+                    os.makedirs(section_dir)
+                output_file_path = os.path.join(section_dir, Path(mp4_name).with_suffix('.mp3'))
 
-        print(f"MP4: {mp4_path}")
-        print(f"M4A: {m4a_path}")
-        convert_to_m4a(mp4_path, m4a_path)
+            print(f"MP4: {mp4_path}")
+            print(f"M4A: {output_file_path}")
+            convert_to_mp3(mp4_path, output_file_path)
+        else:
+            # Default section is only the case when there were no sections given or songs posted before a section first
+            # began
+            if section == "Default":
+                output_file_path = os.path.join(config["LOCATIONS"]["M4aSaveFolder"], Path(mp4_name).with_suffix('.m4a'))
+            else:
+                # Create a new folder for the Section / category if it not yet exists
+                section_dir = os.path.join(config["LOCATIONS"]["M4aSaveFolder"], section)
+                if not os.path.exists(section_dir):
+                    os.makedirs(section_dir)
+                output_file_path = os.path.join(section_dir, Path(mp4_name).with_suffix('.m4a'))
+
+            print(f"MP4: {output_file_path}")
+            print(f"M4A: {output_file_path}")
+            convert_to_m4a(mp4_path, output_file_path)
 
         # Download cover (-nocover will stop this)
         if arguments.no_cover_in_metadata:
@@ -52,7 +70,8 @@ async def run(arguments: argparse.Namespace, songs: dict):
             jpg_path = download_cover(video_cover_url, video_id, config["LOCATIONS"]["Mp4TempFolder"])
 
         # Set the meta-tags
-        set_meta_tags(m4a_path, video_title, video_author, jpg_path)
+        if not arguments.convertmp3:
+            set_meta_tags(output_file_path, video_title, video_author, jpg_path)
 
 
 if __name__ == "__main__":
@@ -74,6 +93,9 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--playlist_url",
                         action="store",
                         help="Allows you to parse an url to a YouTube playlist to be used as the input")
+    parser.add_argument("-mp3", "--convertmp3",
+                        action=argparse.BooleanOptionalAction,
+                        help="Convert to mp3")
     parser.add_argument("-g", "--genre_name_playlist",
                         action="store",
                         default="Default",
