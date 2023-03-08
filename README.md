@@ -35,6 +35,6 @@ optional arguments:
                         Allows you to parse an url to a YouTube playlist to be used as the input
   -g GENRE_NAME_PLAYLIST, --genre_name_playlist GENRE_NAME_PLAYLIST
                         Requires a playlist url to be specified. Allows you to automatically sort all files into the given directory name
-
+  -mp3                  Switches converting from m4a to mp3 files
 This utility was made for private use
 ````
