@@ -35,9 +35,9 @@ jobs:
           pip install -r requirements.txt
 
       # Build python script into a stand-alone exe
-      - uses: sam-k0/DS4DJ-dx
+      - uses: Nuitka/Nuitka-Action@v0.4
         with:
-          script-name: main.py
+          script-name: hello_world.py
       
       # Uploads artifact
       - name: Upload Artifact
