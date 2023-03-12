@@ -36,8 +36,8 @@ def clean_temp_folder(location_mp4_tempdir: str) -> None:
     print("Done removing temp files. (pass -k to keep)")
 
 
-def set_meta_tags(location_m4a: str, title: str, author: str, jpg_path: str) -> None:
-    file = music_tag.load_file(location_m4a)
+def set_meta_tags(location_file: str, title: str, author: str, jpg_path: str) -> None:
+    file = music_tag.load_file(location_file)
     file['title'] = title
     file['artist'] = author
 

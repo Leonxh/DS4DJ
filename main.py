@@ -8,6 +8,9 @@ from song_scraper import scrape_playlist, scrape_file
 from youtube_utils import get_id_by_name, download_video, download_cover
 from conversion_utils import convert_to_m4a, clean_temp_folder, set_meta_tags, convert_to_mp3
 from pathlib import Path
+import shutil
+import time
+
 
 
 async def run(arguments: argparse.Namespace, songs: dict):
@@ -19,16 +22,18 @@ async def run(arguments: argparse.Namespace, songs: dict):
     """
     for song_name, section in songs.items():
         print(f"Working on {song_name}...")
-
-        # Get video id
-        if arguments.playlist_url is not None:
-            video_id = song_name
-        else:
-            video_id = await get_id_by_name(song_name)
-
+        try:
+            # Get video id
+            if arguments.playlist_url is not None:
+                video_id = song_name
+            else:
+                video_id = await get_id_by_name(song_name)
+        except:
+            print("Error fetching {}".format(song_name))
+            continue
         # Download Video to wanted location
         mp4_name, video_author, video_title, video_cover_url = download_video(video_id,
-                                                                              config["LOCATIONS"]["Mp4TempFolder"])
+                                                                            config["LOCATIONS"]["Mp4TempFolder"])
 
         # Convert .mp4 video to .m4a SoundFile
         mp4_path = os.path.join(config["LOCATIONS"]["Mp4TempFolder"], Path(mp4_name))
@@ -48,8 +53,15 @@ async def run(arguments: argparse.Namespace, songs: dict):
                 output_file_path = os.path.join(section_dir, Path(mp4_name).with_suffix('.mp3'))
 
             print(f"MP4: {mp4_path}")
-            print(f"M4A: {output_file_path}")
-            convert_to_mp3(mp4_path, output_file_path)
+            print(f"MP3: {output_file_path}")
+            #shutil.copy(mp4_path, output_file_path) this also works but for some reason Metadata isnt changed then.. bro why?
+            # I used above thing to try to speed up the process cause the mp4
+            # we are downloading is basically already mp3.
+            try:
+                convert_to_mp3(mp4_path, output_file_path)
+            except:
+                print("Conversion with ffmpeg failed, using fallback rename method for {}".format(mp4_path))
+                shutil.copy(mp4_path, output_file_path)
         else:
             # Default section is only the case when there were no sections given or songs posted before a section first
             # began
@@ -73,8 +85,11 @@ async def run(arguments: argparse.Namespace, songs: dict):
             jpg_path = download_cover(video_cover_url, video_id, config["LOCATIONS"]["Mp4TempFolder"])
 
         # Set the meta-tags
-        if not arguments.convertmp3:
+        #if not arguments.convertmp3:
+        try:
             set_meta_tags(output_file_path, video_title, video_author, jpg_path)
+        except:
+            print("Failed to set metatags for {}".format(video_title))
 
 
 if __name__ == "__main__":
