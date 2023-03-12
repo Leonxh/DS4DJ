@@ -1,5 +1,6 @@
 # DS4DJ
-An automated toolchain for fetching a list of songs from YouTube and converting them to the desired format (in this case .m4a).
+[![CI](https://github.com/sam-k0/DS4DJ-dx/actions/workflows/nuitka.yml/badge.svg)](https://github.com/sam-k0/DS4DJ-dx/actions/workflows/nuitka.yml)<br>
+An automated toolchain for fetching a list of songs from YouTube and converting them to the desired format (in this case .m4a). <br>
 
 ## Flags / Options when executing
 Command line arguments are as following: 
